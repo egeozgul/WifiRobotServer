@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<%- include('./partials/head.ejs') %>
+<body class="page_display">
+	<div class="main_content">
+		<div class="page_title"><h1 class="tcenter">Camera relay</h1></div>
+		<div class="tcenter">
+			<canvas id="canvas">
+			  Désolé, votre navigateur ne prend pas en charge &lt;canvas&gt;.
+			</canvas>
+		</div>
+	</div>
+	
+	<script>
+	var portStr="";
+	if(location.port != "")
+	{
+		portStr=":"+location.port;
+	}
+	
+var protocolStr="ws";
+	if (location.protocol === 'https:') {
+		var protocolStr="wss";
+	}
+	console.log(protocolStr+'://' + location.hostname + portStr+"/jpgstream_client");
+	var ws = new WebSocket(protocolStr+'://' + location.hostname + portStr+"/jpgstream_client");	var canvas = document.getElementById('canvas');
+	var ctx = canvas.getContext('2d');
+	
+	console.log(ws);
+	
+	var img = new Image();
+	img.onload = function() {
+			canvas.style.width=this.width+'px';
+			canvas.style.height=this.height+'px';
+			ctx.drawImage(this, 0, 0, this.width,    this.height,     // source rectangle
+                   0, 0, canvas.width, canvas.height); // destination rectangle
+
+
+	}
+	
+	
+	
+	
+	
+	
+	ws.onmessage = function(message) 
+	{	
+		var url = URL.createObjectURL(message.data);
+		img.src = url;		
+	};
+	
+	
+	var lastPressedTimeA = 0;
+	
+	//event.keyCode
+	document.addEventListener('keydown', function() 
+	{
+		var pressTime = new Date().getTime();
+		
+		if(pressTime - lastPressedTimeA > 100)
+		{
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", '/data', true);
+			xhr.setRequestHeader('Content-Type', 'application/json');
+			xhr.send(JSON.stringify({
+				value: event.keyCode 
+			}));
+		}
+		
+		lastPressedTimeA = pressTime;
+		
+	}, true);
+
+	
+	var lastPressedTimeB = 0;
+	//event.keyCode
+	document.addEventListener('keyup', function() 
+	{
+		var pressTime = new Date().getTime();
+		
+		if(pressTime - lastPressedTimeB > 100)
+		{
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", '/data', true);
+			xhr.setRequestHeader('Content-Type', 'application/json');
+			xhr.send(JSON.stringify({
+				value: -event.keyCode
+			}));
+		}
+		
+		lastPressedTimeB = pressTime;
+		
+	}, true);
+	
+	
+	
+	</script>
+</body>
+</html>
